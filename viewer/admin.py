@@ -1,3 +1,7 @@
 from django.contrib import admin
+from .models import *
 
-# Register your models here.
+
+@admin.register(Model3D)
+class Model3DAdmin(admin.ModelAdmin):
+    list_display = ['file', 'link']
