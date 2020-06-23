@@ -1,0 +1,119 @@
+<!doctype HTML>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+</head>
+<body>
+    <style>
+        .hidden {
+            display: none;
+        }
+
+        #progress_bar_wrapper {
+            padding: 0;
+            margin-left: 15px;
+        }
+    </style>
+    <div class="container">
+        <div class="row">
+            <h1 class="col-12 mx-5" style="font-size: 6rem;">Models uploader</h1>
+
+            <div class="form-group mb-3 col-12">
+                <div class="custom-file">
+                    {% csrf_token %}
+                  <input type="file" class="custom-file-input" name="file_input" id="file_input" oninput="input_filename();">
+                  <label id="file_input_label" class="custom-file-label" for="file_input">Select file</label>
+                </div>
+            </div>
+            <div class="col-12"><button type="button" class="btn btn-primary mx-3 mb-3" onclick="upload_file('/viewer/upload/');" id="upload_button">Upload model</button>
+                <div id="alert_place"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="progress col-9 hidden" id="progress_bar_wrapper">
+                <div class="progress-bar bg-info hidden" role="progressbar" style="width: 40%;" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" id="progress_bar"></div>
+            </div>
+            <div class="col-2 hidden" id="progress_percent">40%</div>
+        </div>
+    </div>
+</body>
+<script>
+    var input = document.getElementById("file_input");
+    input.value = "";
+
+    var input_label = document.getElementById("file_input_label");
+
+    var upload_button = document.getElementById("upload_button");
+
+    var alert_place = document.getElementById("alert_place");
+    var progress_bar = document.getElementById("progress_bar");
+    var progress_bar_wrapper = document.getElementById("progress_bar_wrapper");
+    var progress_percent = document.getElementById("progress_percent");
+
+    var csrf = document.getElementsByName("csrfmiddlewaretoken")[0];
+
+    function show_alert(text, alert, remove_timeout=2000) {
+        alert_place.innerHTML = `
+            <div id="alert" class="alert alert-${alert} alert-dismissible fade show" role="alert">
+              <h4><span>${text}</span><h4>
+            </div>
+          `
+        setTimeout(remove_alert, remove_timeout);
+    }
+
+    function remove_alert() {
+        alert_place.innerHTML = "";
+    }
+
+    function input_filename(){
+        let filename = input.files[0].name;
+
+        if (!filename.endsWith('.obj')) {
+            show_alert('File must be .obj', 'danger');
+            input.value = "";
+            return false;
+        }
+
+        input_label.innerHTML = filename;
+    }
+
+    function upload_file(url){
+        if (!input.value) {
+            show_alert("No file selected", "warning");
+            return false;
+        }
+
+        upload_button.classList.add('hidden');
+
+        progress_bar.classList.remove('hidden');
+        progress_bar_wrapper.classList.remove('hidden');
+        progress_percent.classList.remove('hidden');
+
+
+        var data = new FormData();
+
+        var request = new XMLHttpRequest();
+
+        request.responseType = "json";
+
+        input.disabled = true;
+
+        var file = input.files[0];
+
+        var filename = file.name;
+
+        var filesize = file.size;
+
+        document.cookie = `filesize=${filesize};csrftoken=${csrf.value}`;
+        data.append("file", file);
+        
+        request.open("post", url);
+
+        request.setRequestHeader("X-CSRFToken", csrf.value);
+        
+        request.send(data);
+
+
+    }
+</script>
+</html>
