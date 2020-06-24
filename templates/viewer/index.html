@@ -30,11 +30,12 @@
             </div>
         </div>
         <div class="row">
-            <div class="progress col-9 hidden" id="progress_bar_wrapper">
-                <div class="progress-bar bg-info hidden" role="progressbar" style="width: 40%;" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" id="progress_bar"></div>
+            <div class="progress col-9 hidden mb-3" id="progress_bar_wrapper">
+                <div class="progress-bar bg-info hidden" role="progressbar" style="width: 0;" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" id="progress_bar"></div>
             </div>
-            <div class="col-2 hidden" id="progress_percent">40%</div>
+            <div class="col-2 hidden" id="progress_percent"></div>
         </div>
+        <div class="card" id="card_uploaded"></div>
     </div>
 </body>
 <script>
@@ -50,6 +51,8 @@
     var progress_bar_wrapper = document.getElementById("progress_bar_wrapper");
     var progress_percent = document.getElementById("progress_percent");
 
+    var card_div = document.getElementById("card_uploaded");
+
     var csrf = document.getElementsByName("csrfmiddlewaretoken")[0];
 
     function show_alert(text, alert, remove_timeout=2000) {
@@ -63,6 +66,24 @@
 
     function remove_alert() {
         alert_place.innerHTML = "";
+    }
+
+    function progress_move(event) {
+        let percent = Math.floor((event.loaded / event.total) * 100);
+        progress_bar.style.width = `${percent}%`;
+        progress_percent.innerHTML = `${percent}%`;
+    }
+
+    function uploaded_show(response) {
+        card_div.innerHTML = `<div class="card-header bg-success" style="color: #fff;">
+            Success
+          </div>
+          <div class="card-body">
+            <h5 class="card-title">${response.filename}</h5>
+            <p class="card-text"><b>File size:</b> ${response.file_size} B</p>
+            <p class="card-text"><b>File id:</b> ${response.file_id}</p>
+            <a href="${response.file_link}" target="_blank">${response.file_link}</a>
+          </div>`;
     }
 
     function input_filename(){
@@ -106,6 +127,19 @@
 
         document.cookie = `filesize=${filesize};csrftoken=${csrf.value}`;
         data.append("file", file);
+
+        request.addEventListener("load", (event) =>{
+            if (request.status == 200) {
+                uploaded_show(request.response);
+            } else {
+                show_alert("Something went wrong. Try again later", "danger");
+            }
+        });
+        request.addEventListener("progress", progress_move);
+
+        request.addEventListener("error", (e) => {
+            show_alert(`Error uploading file`, "danger");
+        });
         
         request.open("post", url);
 

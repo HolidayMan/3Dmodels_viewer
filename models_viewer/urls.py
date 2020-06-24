@@ -15,11 +15,13 @@ Including another URLconf
 """
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
+from django.views.generic.base import RedirectView
 from .settings import MEDIA_ROOT, MEDIA_URL
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('viewer/', include('viewer.urls')),
+    path('viewer/', include('viewer.urls'), name="viewer"),
+    re_path(r'^.*$', RedirectView.as_view(url="viewer/", permanent=False)),
 ] + (static(MEDIA_URL, document_root=MEDIA_ROOT))
