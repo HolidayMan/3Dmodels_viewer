@@ -23,5 +23,5 @@ from .settings import MEDIA_ROOT, MEDIA_URL
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('viewer/', include('viewer.urls'), name="viewer"),
-    re_path(r'^.*$', RedirectView.as_view(url="viewer/", permanent=False)),
+    re_path(r'^$', RedirectView.as_view(url="viewer/", permanent=False)),
 ] + (static(MEDIA_URL, document_root=MEDIA_ROOT))
